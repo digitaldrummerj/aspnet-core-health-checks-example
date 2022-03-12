@@ -1,4 +1,5 @@
 using AspNetCoreHealthCheckExample;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,7 +32,10 @@ app.UseAuthorization();
 
 app.UseEndpoints(endpoints =>
 {
-    endpoints.MapCustomHealthChecks("/health", "Example");
+    endpoints.MapHealthChecks("/health", new HealthCheckOptions()
+    {
+        ResponseWriter = HealthCheckExtensions.WriteResponse
+    });
 });
 
 app.Run();

@@ -1,15 +1,11 @@
 using System.Net.Mime;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 public static class HealthCheckExtensions
 {
-    public static IEndpointConventionBuilder MapCustomHealthChecks(
-        this IEndpointRouteBuilder endpoints,
-        string endpointUrl,
-        string serviceName)
+    public static Task WriteResponse(HttpContext context, HealthReport report)
     {
         var jsonSerializerOptions = new JsonSerializerOptions
         {
@@ -18,33 +14,14 @@ public static class HealthCheckExtensions
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
 
-        var endpointConventionBuilder =
-            endpoints.MapHealthChecks(endpointUrl, new HealthCheckOptions
+        string json = JsonSerializer.Serialize(
+            new
             {
-                ResponseWriter = async (context, report) =>
-                {
-                    string json = JsonSerializer.Serialize(
-                        HealthResponse(serviceName, report)
-                      , jsonSerializerOptions);
-
-                    context.Response.ContentType = MediaTypeNames.Application.Json;
-                    await context.Response.WriteAsync(json);
-                }
-            });
-
-        return endpointConventionBuilder;
-    }
-
-    private static HealthResult HealthResponse(string serviceName, HealthReport report)
-    {
-        return new HealthResult
-        {
-            Name = serviceName,
-            Status = report.Status.ToString(),
-            Duration = report.TotalDuration,
-            Info = report.Entries
+                Status = report.Status.ToString(),
+                Duration = report.TotalDuration,
+                Info = report.Entries
                     .Select(e =>
-                        new HealthInfo
+                        new
                         {
                             Key = e.Key,
                             Description = e.Value.Description,
@@ -56,6 +33,10 @@ public static class HealthCheckExtensions
                             Data = e.Value.Data
                         })
                     .ToList()
-        };
-    }
+            },
+            jsonSerializerOptions);
+
+            context.Response.ContentType = MediaTypeNames.Application.Json;
+            return context.Response.WriteAsync(json);
+        }
 }
