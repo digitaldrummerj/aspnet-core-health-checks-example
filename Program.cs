@@ -2,13 +2,13 @@ using AspNetCoreHealthCheckExample;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
 // Add services to the container.
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 builder.Services.AddHealthChecks()
     .AddCheck<ExampleHealthCheckAsync>("Example");
 
@@ -27,6 +27,11 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapHealthChecks("/health");
+app.UseRouting();
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapCustomHealthChecks("/health", "Example");
+});
 
 app.Run();
