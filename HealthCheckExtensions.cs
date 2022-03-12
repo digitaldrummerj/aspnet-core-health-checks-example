@@ -2,6 +2,7 @@ using System.Net.Mime;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 public static class HealthCheckExtensions
 {
@@ -14,7 +15,7 @@ public static class HealthCheckExtensions
         {
             WriteIndented = false,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
 
         var endpointConventionBuilder =
