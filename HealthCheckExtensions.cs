@@ -2,10 +2,43 @@ using System.Net.Mime;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 public static class HealthCheckExtensions
 {
-    public static Task WriteResponse(HttpContext context, HealthReport report)
+    public static IEndpointConventionBuilder MapCustomHealthChecks (
+        this IEndpointRouteBuilder endpoint,
+        string endpointUrl,
+        string checkName,
+        string tagToFilter = ""
+    )
+    {
+        var endpointConventionBuilder = endpoint.MapHealthChecks(
+            endpointUrl,
+            new HealthCheckOptions
+            {
+                Predicate = GetFilter(tagToFilter),
+                ResponseWriter = async (context, report) => {
+                    string json = CreateJsonResponse(report, checkName);
+                    context.Response.ContentType = MediaTypeNames.Application.Json;
+                    await context.Response.WriteAsync(json);
+                }
+            }
+        );
+
+        return endpointConventionBuilder;
+    }
+
+    private static Func<HealthCheckRegistration, bool> GetFilter (string tag)
+    {
+        Func<HealthCheckRegistration, bool> filterPredicate =
+            filterPredicate = check => check.Tags.Any(t => t == tag);
+        if (string.IsNullOrWhiteSpace(tag)) filterPredicate = x => true;
+
+        return filterPredicate;
+    }
+
+    private static JsonSerializerOptions GetJsonSerializerOptions()
     {
         var jsonSerializerOptions = new JsonSerializerOptions
         {
@@ -14,9 +47,14 @@ public static class HealthCheckExtensions
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
 
+        return jsonSerializerOptions;
+    }
+    private static string CreateJsonResponse(HealthReport report, string checkName)
+    {
         string json = JsonSerializer.Serialize(
             new
             {
+                Name = checkName,
                 Status = report.Status.ToString(),
                 Duration = report.TotalDuration,
                 Info = report.Entries
@@ -34,9 +72,8 @@ public static class HealthCheckExtensions
                         })
                     .ToList()
             },
-            jsonSerializerOptions);
+            GetJsonSerializerOptions());
 
-            context.Response.ContentType = MediaTypeNames.Application.Json;
-            return context.Response.WriteAsync(json);
-        }
+        return json;
+    }
 }

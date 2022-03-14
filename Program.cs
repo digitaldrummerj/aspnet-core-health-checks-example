@@ -35,22 +35,11 @@ app.UseAuthorization();
 
 app.UseEndpoints(endpoints =>
 {
-    endpoints.MapHealthChecks("/health", new HealthCheckOptions()
-    {
-        ResponseWriter = HealthCheckExtensions.WriteResponse
-    });
+    endpoints.MapCustomHealthChecks("/health", "All");
 
-    endpoints.MapHealthChecks("/health/example", new HealthCheckOptions()
-    {
-        Predicate = p => p.Tags.Any(t => t == "Example"),
-        ResponseWriter = HealthCheckExtensions.WriteResponse
-    });
+    endpoints.MapCustomHealthChecks("/health/example", "Example", "Example");
 
-    endpoints.MapHealthChecks("/health/example2", new HealthCheckOptions()
-    {
-        Predicate = p => p.Tags.Any(t => t == "Example2"),
-        ResponseWriter = HealthCheckExtensions.WriteResponse
-    });
+    endpoints.MapCustomHealthChecks("/health/example2", "Example 2", "Example2");
 });
 
 app.Run();
