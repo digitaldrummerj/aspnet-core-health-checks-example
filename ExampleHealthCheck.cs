@@ -9,21 +9,14 @@ public class ExampleHealthCheckAsync : IHealthCheck
     {
         try
         {
-
             return Task.FromResult(
-
                 HealthCheckResult.Healthy("Health Msg Here."));
-
         }
         catch (Exception)
         {
-
             return Task.FromResult(
-
                 new HealthCheckResult(
-
                     context.Registration.FailureStatus, "Unhealth Msg Here."));
-
         }
     }
 }
