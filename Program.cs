@@ -11,7 +11,10 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddHealthChecks()
-    .AddCheck<ExampleHealthCheckAsync>("Example");
+    .AddCheck<ExampleHealthCheckAsync>("Example", tags: new [] { "Example" });
+
+builder.Services.AddHealthChecks()
+    .AddCheck<ExampleHealthCheck2Async>("Example2", tags: new[] { "Example2" });
 
 var app = builder.Build();
 
@@ -34,6 +37,18 @@ app.UseEndpoints(endpoints =>
 {
     endpoints.MapHealthChecks("/health", new HealthCheckOptions()
     {
+        ResponseWriter = HealthCheckExtensions.WriteResponse
+    });
+
+    endpoints.MapHealthChecks("/health/example", new HealthCheckOptions()
+    {
+        Predicate = p => p.Tags.Any(t => t == "Example"),
+        ResponseWriter = HealthCheckExtensions.WriteResponse
+    });
+
+    endpoints.MapHealthChecks("/health/example2", new HealthCheckOptions()
+    {
+        Predicate = p => p.Tags.Any(t => t == "Example2"),
         ResponseWriter = HealthCheckExtensions.WriteResponse
     });
 });
