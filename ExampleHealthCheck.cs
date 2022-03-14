@@ -16,7 +16,7 @@ public class ExampleHealthCheckAsync : IHealthCheck
         {
             return Task.FromResult(
                 new HealthCheckResult(
-                    context.Registration.FailureStatus, "Unhealth Msg Here."));
+                    context.Registration.FailureStatus, "Unhealthy Msg Here."));
         }
     }
 }
